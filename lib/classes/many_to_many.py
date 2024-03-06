@@ -9,7 +9,7 @@ class NationalPark:
     
     @name.setter
     def name(self, name):
-        if not hasattr(self, "_name") and isinstance(name, str) and len(name) >= 3:
+        if not hasattr(self, "name") and isinstance(name, str) and len(name) >= 3:
             self._name = name
         else:
             raise Exception("The name should be a string greater than 3 characters")
