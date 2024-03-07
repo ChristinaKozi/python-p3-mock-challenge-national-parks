@@ -1,7 +1,13 @@
 class NationalPark:
+    all = []
 
     def __init__(self, name):
         self.name = name
+
+        self._trips = []
+        self._visitors = []
+
+        NationalPark.all.append(self)
 
     @property
     def name(self):
@@ -15,42 +21,29 @@ class NationalPark:
             raise Exception("The name should be a string greater than 3 characters")
         
     def trips(self):
-        trips = []
-        for trip in Trip.all:
-            if trip.national_park == self:
-                trips.append(trip)
-        return trips
+        return self._trips
     
     def visitors(self):
-        visitors = []
-        for trip in Trip.all:
-            if trip.national_park == self:
-                visitors.append(trip.visitor)
-        return list(set(visitors))
+        return list(set(self._visitors))
     
     def total_visits(self):
-        count = 0
-        for trip in Trip.all:
-            if trip.national_park == self:
-                count += 1
-        return count
+        return len(self._trips)
     
     def best_visitor(self):
-        visitors = {}
-        for trip in Trip.all:
-            if trip.national_park == self:
-                if trip.visitor in visitors:
-                    visitors[trip.visitor] += 1
-                else:
-                    visitors[trip.visitor] = 1
-            
-        if visitors:
-            max_count = max(visitors.values())
-            for visitor, count in visitors.items():
-                if count == max_count:
-                    return visitor
-        return None
-
+        if len(self._visitors) == 0:
+            return None
+        
+        return max(self._visitors, key = self._visitors.count)
+    
+    @classmethod
+    def most_visited(cls):
+        curr_park = None
+        curr_max_visits = 0
+        for national_park in cls.all:
+            if len(national_park._trips) > curr_max_visits:
+                curr_park = national_park
+                curr_max_visits = len(national_park._trips)
+        return curr_park
 
 class Trip:
     all = []
@@ -60,6 +53,13 @@ class Trip:
         self.national_park = national_park
         self.start_date = start_date
         self.end_date = end_date
+
+        self.visitor._trips.append(self)
+        self.visitor._parks.append(self.national_park)
+
+        self.national_park._trips.append(self)
+        self.national_park._visitors.append(self.visitor)
+
         Trip.all.append(self)
 
     @property
@@ -110,7 +110,10 @@ class Visitor:
 
     def __init__(self, name):
         self.name = name
-    
+
+        self._trips = []
+        self._parks = []    
+
     @property
     def name(self):
         return self._name
@@ -123,23 +126,15 @@ class Visitor:
             raise Exception("The name should be a string between between 1 and 15 characters, inclusive")
         
     def trips(self):
-        trips = []
-        for trip in Trip.all:
-            if trip.visitor == self:
-                trips.append(trip)
-        return trips
+        return self._trips
     
     def national_parks(self):
-        parks = []
-        for trip in Trip.all:
-            if trip.visitor == self:
-                parks.append(trip.national_park)
-        return list(set(parks))
+        return list(set(self._parks))
     
     def total_visits_at_park(self, park):
-        count = 0
-        trips = self.trips()
-        for trip in trips:
-            if trip.visitor == self and trip.national_park == park:
-                count += 1
-        return count
+        return len([trip for trip in self.trips if trip.national_park == park])
+        #count = 0
+        #for trip in self._trips:
+        #    if trip.visitor == self and trip.national_park == park:
+        #        count += 1
+        #return count
